@@ -67,8 +67,8 @@ void Error_Handler(void);
 
 #define BUTTON_UP_Pin		GPIO_PIN_3
 #define BUTTON_UP_GPIO_Port	GPIOA
-#define BUTTON_DOWN_Pin         GPIO_PIN_9
-#define BUTTON_DOWN_GPIO_Port   GPIOC
+#define BUTTON_DOWN_Pin	GPIO_PIN_9
+#define BUTTON_DOWN_GPIO_Port	GPIOC
 
 
 #ifdef __cplusplus

@@ -27,22 +27,25 @@ typedef enum
   LED_MODE_FORCE_OFF
 } LedMode;
 
-typedef struct
-{
-  GPIO_TypeDef *port;
-  uint16_t pin;
-} Led;
-
-static const Led kLeds[] = {
-  {LED_0_GPIO_Port, LED_0_Pin},
-  {LED_1_GPIO_Port, LED_1_Pin},
-  {LED_2_GPIO_Port, LED_2_Pin},
-  {LED_3_GPIO_Port, LED_3_Pin},
-  {LED_4_GPIO_Port, LED_4_Pin},
-  {LED_5_GPIO_Port, LED_5_Pin}
+static GPIO_TypeDef *const s_led_ports[] = {
+  LED_0_GPIO_Port,
+  LED_1_GPIO_Port,
+  LED_2_GPIO_Port,
+  LED_3_GPIO_Port,
+  LED_4_GPIO_Port,
+  LED_5_GPIO_Port
 };
 
-static const size_t kLedCount = sizeof(kLeds) / sizeof(kLeds[0]);
+static const uint16_t s_led_pins[] = {
+  LED_0_Pin,
+  LED_1_Pin,
+  LED_2_Pin,
+  LED_3_Pin,
+  LED_4_Pin,
+  LED_5_Pin
+};
+
+static const size_t s_led_count = sizeof(s_led_pins) / sizeof(s_led_pins[0]);
 
 static volatile LedMode s_led_mode = LED_MODE_NORMAL;
 
@@ -54,9 +57,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim);
 
 static void leds_write_all(GPIO_PinState state)
 {
-  for (size_t i = 0; i < kLedCount; ++i)
+  for (size_t i = 0; i < s_led_count; ++i)
   {
-    HAL_GPIO_WritePin(kLeds[i].port, kLeds[i].pin, state);
+    HAL_GPIO_WritePin(s_led_ports[i], s_led_pins[i], state);
   }
 }
 
@@ -71,58 +74,61 @@ int main(void)
 
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
 
-        //To analyze
-        HAL_Init();
+	//To analyze
+	HAL_Init();
 
-        /* Configure the system clock */
-        SystemClock_Config();
+	/* Configure the system clock */
+	SystemClock_Config();
 
-        /* Initialize all configured peripherals - TO MODIFY */
-        UOC_GPIO_Init();
-        UOC_TIM6_Init();
+	/* Initialize all configured peripherals - TO MODIFY */
+	UOC_GPIO_Init();
+	UOC_TIM6_Init();
 
-        HAL_TIM_Base_Start_IT(&htim6);
+	HAL_TIM_Base_Start_IT(&htim6);
 
-        /* Turn off LED_0 (negative logic) */
-        HAL_GPIO_WritePin(LED_0_GPIO_Port, LED_0_Pin, GPIO_PIN_SET);
+  /* Turn off LED_0 (negative logic) */
+  HAL_GPIO_WritePin(LED_0_GPIO_Port, LED_0_Pin, GPIO_PIN_SET);
+  leds_write_all(GPIO_PIN_SET);
+
+  LedMode previous_mode = s_led_mode;
+
+  /* Infinite loop */
+  while (1)
+  {
+    LedMode mode = LED_MODE_NORMAL;
+
+    if (HAL_GPIO_ReadPin(BUTTON_UP_GPIO_Port, BUTTON_UP_Pin) == GPIO_PIN_RESET)
+    {
+      mode = LED_MODE_FORCE_ON;
+    }
+    else if (HAL_GPIO_ReadPin(BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin) == GPIO_PIN_RESET)
+    {
+      mode = LED_MODE_FORCE_OFF;
+    }
+
+    s_led_mode = mode;
+
+    if (mode != previous_mode)
+    {
+      switch (mode)
+      {
+      case LED_MODE_FORCE_ON:
+        leds_write_all(GPIO_PIN_RESET);
+        break;
+
+      case LED_MODE_FORCE_OFF:
         leds_write_all(GPIO_PIN_SET);
+        break;
 
-        LedMode previous_mode = s_led_mode;
+      case LED_MODE_NORMAL:
+      default:
+        leds_write_all(HAL_GPIO_ReadPin(LED_0_GPIO_Port, LED_0_Pin));
+        break;
+      }
 
-        /* Infinite loop */
-        while (1)
-        {
-                LedMode mode = LED_MODE_NORMAL;
-
-                if (HAL_GPIO_ReadPin(BUTTON_UP_GPIO_Port, BUTTON_UP_Pin) == GPIO_PIN_RESET)
-                {
-                        mode = LED_MODE_FORCE_ON;
-                }
-                else if (HAL_GPIO_ReadPin(BUTTON_DOWN_GPIO_Port, BUTTON_DOWN_Pin) == GPIO_PIN_RESET)
-                {
-                        mode = LED_MODE_FORCE_OFF;
-                }
-
-                s_led_mode = mode;
-
-                if (mode != previous_mode)
-                {
-                        if (mode == LED_MODE_FORCE_ON)
-                        {
-                                leds_write_all(GPIO_PIN_RESET);
-                        }
-                        else if (mode == LED_MODE_FORCE_OFF)
-                        {
-                                leds_write_all(GPIO_PIN_SET);
-                        }
-                        else
-                        {
-                                leds_write_all(HAL_GPIO_ReadPin(LED_0_GPIO_Port, LED_0_Pin));
-                        }
-
-                        previous_mode = mode;
-                }
-        }
+      previous_mode = mode;
+    }
+  }
 }
 
 /**
@@ -172,25 +178,27 @@ void SystemClock_Config(void)
 /* Interrupt handling function */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-        if (htim->Instance != TIM6)
-                return;
+  if (htim->Instance != TIM6)
+  {
+    return;
+  }
 
-        switch (s_led_mode)
-        {
-        case LED_MODE_FORCE_ON:
-                leds_write_all(GPIO_PIN_RESET);
-                break;
+  switch (s_led_mode)
+  {
+  case LED_MODE_FORCE_ON:
+    leds_write_all(GPIO_PIN_RESET);
+    break;
 
-        case LED_MODE_FORCE_OFF:
-                leds_write_all(GPIO_PIN_SET);
-                break;
+  case LED_MODE_FORCE_OFF:
+    leds_write_all(GPIO_PIN_SET);
+    break;
 
-        case LED_MODE_NORMAL:
-        default:
-                HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
-                leds_write_all(HAL_GPIO_ReadPin(LED_0_GPIO_Port, LED_0_Pin));
-                break;
-        }
+  case LED_MODE_NORMAL:
+  default:
+    HAL_GPIO_TogglePin(LED_0_GPIO_Port, LED_0_Pin);
+    leds_write_all(HAL_GPIO_ReadPin(LED_0_GPIO_Port, LED_0_Pin));
+    break;
+  }
 }
 
 /**

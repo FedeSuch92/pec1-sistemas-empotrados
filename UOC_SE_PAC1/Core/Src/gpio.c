@@ -43,7 +43,6 @@ void UOC_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_0_GPIO_Port, &GPIO_InitStruct);
 
-  /* Match the rest of LEDs to LED0 state */
   GPIO_PinState led0_state = HAL_GPIO_ReadPin(LED_0_GPIO_Port, LED_0_Pin);
 
   GPIO_InitStruct.Pin = LED_1_Pin;
@@ -73,7 +72,6 @@ void UOC_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(BUTTON_UP_GPIO_Port, &GPIO_InitStruct);
 
-  /* Configure JOYSTICK DOWN Button */
   GPIO_InitStruct.Pin = BUTTON_DOWN_Pin;
   HAL_GPIO_Init(BUTTON_DOWN_GPIO_Port, &GPIO_InitStruct);
 }
