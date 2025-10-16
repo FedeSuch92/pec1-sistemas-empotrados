@@ -43,10 +43,35 @@ void UOC_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_0_GPIO_Port, &GPIO_InitStruct);
 
+  GPIO_PinState led0_state = HAL_GPIO_ReadPin(LED_0_GPIO_Port, LED_0_Pin);
+
+  GPIO_InitStruct.Pin = LED_1_Pin;
+  HAL_GPIO_Init(LED_1_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(LED_1_GPIO_Port, LED_1_Pin, led0_state);
+
+  GPIO_InitStruct.Pin = LED_2_Pin;
+  HAL_GPIO_Init(LED_2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(LED_2_GPIO_Port, LED_2_Pin, led0_state);
+
+  GPIO_InitStruct.Pin = LED_3_Pin;
+  HAL_GPIO_Init(LED_3_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(LED_3_GPIO_Port, LED_3_Pin, led0_state);
+
+  GPIO_InitStruct.Pin = LED_4_Pin;
+  HAL_GPIO_Init(LED_4_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(LED_4_GPIO_Port, LED_4_Pin, led0_state);
+
+  GPIO_InitStruct.Pin = LED_5_Pin;
+  HAL_GPIO_Init(LED_5_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_WritePin(LED_5_GPIO_Port, LED_5_Pin, led0_state);
+
   /* Configure JOYSTICK UP Button */
   GPIO_InitStruct.Pin = BUTTON_UP_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(BUTTON_UP_GPIO_Port, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = BUTTON_DOWN_Pin;
+  HAL_GPIO_Init(BUTTON_DOWN_GPIO_Port, &GPIO_InitStruct);
 }
